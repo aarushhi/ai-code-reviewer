@@ -20,4 +20,14 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/:id', async (req, res) => {
+  try {
+    const review = await Review.findById(req.params.id);
+    if (!review) return res.status(404).json({ error: 'Review not found' });
+    res.json(review);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
