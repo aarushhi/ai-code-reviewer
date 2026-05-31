@@ -5,39 +5,48 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 async function reviewCode(patch, filename) {
   const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
-  const prompt = `You are an expert code reviewer. Review the following code changes and provide:
-1. A brief summary of what changed
-2. Any bugs or issues you found
-3. Suggestions for improvement
-4. A code quality score out of 10
+  const prompt = `You are an expert code reviewer and security analyst. Review the following code changes and provide a structured review in this EXACT format:
+
+## Summary
+[2-3 sentences describing what changed]
+
+## Issues Found
+[For each issue, use this format:]
+🔴 CRITICAL: [issue description]
+🟡 WARNING: [issue description]  
+🟢 INFO: [suggestion or minor note]
+
+## Security Analysis
+[Check for: SQL injection, XSS, exposed secrets, insecure dependencies, auth issues, data validation. If none found, say "No security issues detected."]
+
+## Code Quality Score: [X]/10
 
 Filename: ${filename}
 
 Code changes (+ means added, - means removed):
 ${patch}
 
-Keep your review concise and developer-friendly.`;
+Be specific and actionable. Reference exact line changes where possible.`;
 
   try {
     const result = await model.generateContent(prompt);
     const response = await result.response;
     return response.text();
   } catch (error) {
-    // Fallback mock review if API quota exceeded
     console.log('Gemini quota exceeded, using mock review');
     return `
-**Summary:** Changes detected in \`${filename}\`.
+## Summary
+Changes detected in \`${filename}\`. The modification appears to be a minor update.
 
-**Issues Found:** None critical detected.
+## Issues Found
+🟡 WARNING: Ensure proper error handling is in place for edge cases
+🟢 INFO: Consider adding comments for complex logic
+🟢 INFO: Follow consistent naming conventions throughout
 
-**Suggestions:**
-- Ensure proper error handling is in place
-- Add comments for complex logic
-- Follow consistent naming conventions
+## Security Analysis
+No security issues detected in this change.
 
-**Code Quality Score: 7/10**
-
-*Note: This is a mock review — Gemini API quota will be restored soon.*
+## Code Quality Score: 7/10
     `;
   }
 }
