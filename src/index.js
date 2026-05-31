@@ -3,9 +3,13 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const connectDB = require('./db');
 const webhookRouter = require('./routes/webhook');
+const reviewsRouter = require('./routes/reviews');
 
 const app = express();
+
+connectDB();
 
 app.use(helmet());
 app.use(cors());
@@ -17,6 +21,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/webhook', webhookRouter);
+app.use('/reviews', reviewsRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
